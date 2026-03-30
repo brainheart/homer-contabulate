@@ -142,9 +142,10 @@
             ? playsById.get(line.play_id)
             : null;
           rows.push({
-            play_title: play ? play.title : 'Unknown canto',
+            play_title: play ? play.title : 'Unknown work',
             play_id: line.play_id,
             act: line.act,
+            act_label: line.act_label,
             scene: line.scene,
             line_num: line.line_num,
             text: rawText,
@@ -245,6 +246,9 @@
           tdPlay.textContent = row.play_title ?? '';
         }
 
+        const tdBook = document.createElement('td');
+        tdBook.textContent = row.act_label || row.act;
+
         const tdScene = document.createElement('td');
         tdScene.textContent = sceneVal;
 
@@ -255,6 +259,7 @@
           : window.escapeHTML(row.text);
 
         tr.appendChild(tdPlay);
+        tr.appendChild(tdBook);
         tr.appendChild(tdScene);
         tr.appendChild(tdText);
         els.tableBody.appendChild(tr);
@@ -280,8 +285,9 @@
     function setHeaders() {
       if (!els.headRow) return;
       const cols = [
-        { key: 'play_title', label: 'Canto', defaultDir: 'asc', type: 'text' },
-        { key: 'scene', label: 'Terzina', type: 'number' },
+        { key: 'play_title', label: 'Work', defaultDir: 'asc', type: 'text' },
+        { key: 'act_label', label: 'Book', defaultDir: 'asc', type: 'text' },
+        { key: 'scene', label: 'Line', type: 'number' },
         { key: 'text', label: 'Line', defaultDir: 'asc', type: 'text' }
       ];
 
@@ -336,14 +342,14 @@
 
       const rows = buildLinesRows(query);
       if (!rows) {
-        els.tableBody.innerHTML = '<tr><td colspan="3" class="warning">Invalid search or no line data available.</td></tr>';
+        els.tableBody.innerHTML = '<tr><td colspan="4" class="warning">Invalid search or no line data available.</td></tr>';
         setElementHidden(els.pagination, true);
         updateFilterActions();
         return;
       }
 
       if (rows.length === 0) {
-        els.tableBody.innerHTML = '<tr><td colspan="3" class="muted">No lines matched.</td></tr>';
+        els.tableBody.innerHTML = '<tr><td colspan="4" class="muted">No lines matched.</td></tr>';
         setElementHidden(els.pagination, true);
         updateFilterActions();
         return;
@@ -412,6 +418,7 @@
       for (const r of filtered) {
         rows.push(cols.map(c => {
           if (c.key === 'scene') return r.scene_label || r.scene;
+          if (c.key === 'act_label') return r.act_label || r.act;
           if (c.key === 'text') return r.text;
           return r[c.key] ?? '';
         }));

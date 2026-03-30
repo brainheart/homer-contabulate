@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Search Virgil's Aeneid in Latin by word, phrase, or regex across books and individual lines. Built from the PerseusDL canonical-latinLit corpus.">
+  <meta name="description" content="Search Homer’s Iliad and Odyssey in Ancient Greek by word, phrase, or regex across works, books, and individual lines. Built from Perseus Digital Library TEI XML.">
   <meta name="author" content="Reinhard Engels">
-  <meta property="og:title" content="Contabulate: Aeneid Tabular Search">
-  <meta property="og:description" content="Search Virgil's Aeneid in Latin by word, phrase, or regex across books and individual lines. Built from the PerseusDL canonical-latinLit corpus.">
+  <meta property="og:title" content="Contabulate: Homer — Iliad & Odyssey Tabular Search">
+  <meta property="og:description" content="Search Homer’s Iliad and Odyssey in Ancient Greek by word, phrase, or regex across works, books, and individual lines. Built from Perseus Digital Library TEI XML.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://brainheart.github.io/aeneid-contabulate/">
+  <meta property="og:url" content="https://homer.contabulate.org/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%238b1538' d='M53 8c-12 2-21 11-25 22l-6 17c-1 3-4 5-7 6l-4 2 2-4c1-3 3-6 6-7l17-6C47 34 56 25 58 13l1-6-6 1z'/%3E%3Cpath fill='%238b1538' d='M21 43l-6 6 2 2 6-6z'/%3E%3Cpath fill='%238b1538' d='M31 22l11 11 2-2-11-11z'/%3E%3C/svg%3E">
-  <title>Aeneid Contabulate</title>
+  <title>Contabulate: Homer — Iliad &amp; Odyssey Tabular Search</title>
   <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
-  <h1><a href="../">Contabulate</a>: Aeneid Tabular Search</h1>
-  <p class="muted">Search words, bigrams, or trigrams across books and individual lines in Virgil's Latin text. Use regex (e.g., <code>^arma$</code>) or plain text. Source text courtesy of <a href="https://github.com/PerseusDL/canonical-latinLit" target="_blank">PerseusDL canonical-latinLit</a>.</p>
+  <h1><a href="../">Contabulate</a>: Homer — Iliad &amp; Odyssey Tabular Search</h1>
+  <p class="muted">Search words, bigrams, or trigrams across works, books, and individual lines in Homer’s Ancient Greek text. Use regex (e.g., <code>^μῆνιν$</code>) or plain text. Source text courtesy of the <a href="https://www.perseus.tufts.edu/hopper/" target="_blank" rel="noopener">Perseus Digital Library</a>.</p>
 
   <div class="tabs is-hidden">
     <button class="tab-btn active" data-tab="segments">Rows are Contexts</button>
@@ -33,8 +33,8 @@
         </select>
         <span class="label-strong">by</span>
         <select id="gran" class="control-select">
-          <option value="play">Book</option>
-          <option value="scene" selected>Line</option>
+          <option value="play">Work</option>
+          <option value="act" selected>Book</option>
           <option value="line">Line</option>
         </select>
         <span class="label-strong">matching</span>
@@ -127,7 +127,7 @@
           <option value="exact">exact term</option>
           <option value="regex">regex pattern</option>
         </select>
-        <input type="text" class="query-input-lines" id="linesQuery" placeholder="e.g., selva, ^amor$, nel mezzo" value="selva">
+        <input type="text" class="query-input-lines" id="linesQuery" placeholder="e.g., μῆνιν, ^ἄνδρα$, πολύτροπον" value="μῆνιν">
       </div>
     </div>
 
@@ -1225,7 +1225,7 @@
           if (!play) continue;
           ensureRow(k, () => {
             const ngramCount = getRowNgramCount(total_words);
-            return { id: `${play.abbr}.${actNum}`, location:getChapterLocation(play, actNum), play_title: play.title, genre:play.genre, play_id:pid, act:actNum, total_words, ngram_count:ngramCount };
+            return { id: `${play.abbr}.${actNum}`, location:getChapterLocation(play, actNum), play_title: play.title, genre:play.genre, play_id:pid, act:actNum, act_label:`Ῥαψῳδία ${['α','β','γ','δ','ε','ζ','η','θ','ι','κ','λ','μ','ν','ξ','ο','π','ρ','σ','τ','υ','φ','χ','ψ','ω'][actNum - 1] || actNum}`, total_words, ngram_count:ngramCount };
           });
         }
       } else if (granVal === 'play') {
@@ -1326,7 +1326,8 @@
 
       const baseCols = [
         { key: 'location', label: 'Location', defaultDir: 'asc', type: 'text' },
-        { key: 'play_title', label: 'Book', defaultDir: 'asc', type: 'text' },
+        { key: 'play_title', label: 'Work', defaultDir: 'asc', type: 'text' },
+        { key: 'act_label', label: 'Book', defaultDir: 'asc', type: 'text' },
         { key: 'scene', label: 'Line', type: 'number' }
       ];
       const termCols = buildTermColumns();
@@ -1344,7 +1345,8 @@
     if (granVal==='scene'){
       const baseCols = [
         {key:'location', label:'Location', defaultDir:'asc', type:'text'},
-        {key:'play_title', label:'Book', defaultDir:'asc', type:'text'},
+        {key:'play_title', label:'Work', defaultDir:'asc', type:'text'},
+        {key:'act_label', label:'Book', defaultDir:'asc', type:'text'},
         {key:'scene', label:'Line', type:'number'},
         {key:'ngram_count', label: getBaseCountLabel(), type:'number'}
       ];
@@ -1356,7 +1358,7 @@
             const totalWords = m.total_words || 0;
             const ngramCount = getRowNgramCount(totalWords);
             const playMeta = playsById.get(m.play_id) || { play_id: m.play_id, abbr: m.play_abbr, location: m.location };
-            return { id: m.canonical_id, location: m.location || getVerseLocation(playMeta, m.act, m.scene), play_title: m.play_title, genre:m.genre, play_id:m.play_id, act:m.act, scene:m.scene, total_words:totalWords, ngram_count:ngramCount, scene_id };
+            return { id: m.canonical_id, location: m.location || getVerseLocation(playMeta, m.act, m.scene), play_title: m.play_title, genre:m.genre, play_id:m.play_id, act:m.act, act_label:m.act_label, scene:m.scene, total_words:totalWords, ngram_count:ngramCount, scene_id };
           });
           const d = denomFor(normalizeTermN(term.n) || 1,'scene',m);
           row[`${termKeys[termIdx]}_count`] = count;
@@ -1376,8 +1378,8 @@
     if (granVal==='act'){
       const baseCols = [
         {key:'location', label:'Location', defaultDir:'asc', type:'text'},
-        {key:'play_title', label:'Book', defaultDir:'asc', type:'text'},
-        {key:'act', label:'Section', type:'number'},
+        {key:'play_title', label:'Work', defaultDir:'asc', type:'text'},
+        {key:'act_label', label:'Book', defaultDir:'asc', type:'text'},
         {key:'ngram_count', label: getBaseCountLabel(), type:'number'}
       ];
       activeTerms.forEach((term, termIdx) => {
@@ -1397,7 +1399,7 @@
           const row = ensureRow(k, () => {
             const total_words = actTotals.get(k) || 0;
             const ngramCount = getRowNgramCount(total_words);
-            return { id: `${play.abbr}.${actNum}`, location:getChapterLocation(play, actNum), play_title: play.title, genre:play.genre, play_id:pid, act:actNum, total_words, ngram_count:ngramCount };
+            return { id: `${play.abbr}.${actNum}`, location:getChapterLocation(play, actNum), play_title: play.title, genre:play.genre, play_id:pid, act:actNum, act_label:`Ῥαψῳδία ${['α','β','γ','δ','ε','ζ','η','θ','ι','κ','λ','μ','ν','ξ','ο','π','ρ','σ','τ','υ','φ','χ','ψ','ω'][actNum - 1] || actNum}`, total_words, ngram_count:ngramCount };
           });
           const d = denomFor(normalizeTermN(term.n) || 1,'act',{play_id:pid,act:actNum});
           row[`${termKeys[termIdx]}_count`] = count;
@@ -1417,9 +1419,9 @@
     if (granVal==='play'){
       const baseCols = [
         {key:'location', label:'Location', defaultDir:'asc', type:'text'},
-        {key:'title', label:'Book', defaultDir:'asc', type:'text'},
-        {key:'genre', label:'Book', defaultDir:'asc', type:'text'},
-        {key:'num_chapters', label:'# sections', type:'number'},
+        {key:'title', label:'Work', defaultDir:'asc', type:'text'},
+        {key:'genre', label:'Genre', defaultDir:'asc', type:'text'},
+        {key:'num_chapters', label:'# books', type:'number'},
         {key:'num_lines', label:'# lines', type:'number'},
         {key:'ngram_count', label: getBaseCountLabel(), type:'number'}
       ];
@@ -1455,8 +1457,8 @@
 
     if (granVal==='genre'){
       const baseCols = [
-        {key:'genre', label:'Book', defaultDir:'asc', type:'text'},
-        {key:'num_plays', label:'# cantos', type:'number'},
+        {key:'genre', label:'Genre', defaultDir:'asc', type:'text'},
+        {key:'num_plays', label:'# works', type:'number'},
         {key:'ngram_count', label: getBaseCountLabel(), type:'number'}
       ];
       activeTerms.forEach((term, termIdx) => {

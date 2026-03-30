@@ -1,0 +1,11 @@
+{
+  "name": "homer-contabulate",
+  "private": true,
+  "description": "Static Homer contabulate app for the Iliad and Odyssey.",
+  "scripts": {
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.0"
+  }
+}

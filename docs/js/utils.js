@@ -110,7 +110,7 @@ function countRegexMatches(text, re) {
 }
 
 function tokenizeLineText(text) {
-  const m = String(text || '').toLowerCase().match(/[a-z]+/g);
+  const m = String(text || '').toLowerCase().match(/[^\W\d_]+(?:[᾽'][^\W\d_]+)?/gu);
   return m ? m : [];
 }
 
@@ -146,10 +146,10 @@ function buildHighlightRegexFromNgrams(ngrams) {
   for (const ng of ngrams) {
     const tokens = ng.split(' ').filter(Boolean).map(escapeRegexText);
     if (tokens.length === 0) continue;
-    parts.push('\\b' + tokens.join('\\s+') + '\\b');
+    parts.push(`(?<!\\p{L})${tokens.join('\\s+')}(?!\\p{L})`);
   }
   if (parts.length === 0) return null;
-  return new RegExp(parts.join('|'), 'gi');
+  return new RegExp(parts.join('|'), 'giu');
 }
 
 function debounce(fn, wait = 250) {

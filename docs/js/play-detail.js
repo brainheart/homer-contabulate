@@ -1,4 +1,4 @@
-// Canto Detail Modal (TF-IDF analysis)
+// Work Detail Modal (TF-IDF analysis)
 // Extracted from index.html — initialized via initPlayDetail()
 
 (function () {
@@ -207,7 +207,7 @@
     const overlay = document.createElement('div');
     overlay.className = 'play-detail-overlay';
     overlay.innerHTML = `
-      <div class="play-detail-modal" role="dialog" aria-modal="true" aria-label="Canto detail">
+      <div class="play-detail-modal" role="dialog" aria-modal="true" aria-label="Work detail">
         <div class="play-detail-head">
           <button type="button" class="play-detail-close" aria-label="Close">×</button>
           <h3 id="playDetailTitle"></h3>
@@ -366,7 +366,7 @@
       th.style.cursor = 'pointer';
       const key = th.dataset.key || '';
       if (key === 'tfidf') {
-        th.title = 'TF-IDF = term frequency in this canto × inverse document frequency across all cantos. IDF = ln(N / df), where N is the number of cantos and df is the number of cantos containing the term. Higher means more distinctive to this canto. Click to sort.';
+        th.title = 'TF-IDF = term frequency in this work × inverse document frequency across all works. IDF = ln(N / df), where N is the number of works and df is the number of works containing the term. Higher means more distinctive to this work. Click to sort.';
         th.setAttribute('aria-label', 'TF-IDF score. Hover for explanation. Click to sort.');
       } else {
         th.title = 'Click to sort';
@@ -495,8 +495,8 @@
     const totalVerses = play.total_lines || 0;
     const chapters = shape.acts.size || play.num_acts || 0;
 
-    modal.titleEl.textContent = play.title || play.abbr || 'Unknown canto';
-    modal.metaEl.textContent = `${play.genre || 'Unknown canticle'} \u00b7 ${totalWords} words \u00b7 ${totalVerses} lines \u00b7 ${chapters} section${chapters === 1 ? '' : 's'}`;
+    modal.titleEl.textContent = play.title || play.abbr || 'Unknown work';
+    modal.metaEl.textContent = `${play.genre || 'Unknown genre'} \u00b7 ${totalWords} words \u00b7 ${totalVerses} lines \u00b7 ${chapters} book${chapters === 1 ? '' : 's'}`;
     if (modal.filterNamesToggle) modal.filterNamesToggle.checked = true;
     modal.overlay.classList.add('open');
     modal.setLoading('Computing...');
