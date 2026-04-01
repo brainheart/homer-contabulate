@@ -5,7 +5,7 @@
   'use strict';
 
 function normalizeTerm(term) {
-  return String(term || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  return String(term || '').normalize('NFC').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 function parseNumeric(text) {
@@ -110,7 +110,7 @@ function countRegexMatches(text, re) {
 }
 
 function tokenizeLineText(text) {
-  const m = String(text || '').toLowerCase().match(/[^\W\d_]+(?:[᾽'][^\W\d_]+)?/gu);
+  const m = String(text || '').normalize('NFC').toLowerCase().match(/[^\W\d_]+(?:[᾽'][^\W\d_]+)?/gu);
   return m ? m : [];
 }
 
