@@ -110,7 +110,7 @@ function countRegexMatches(text, re) {
 }
 
 function tokenizeLineText(text) {
-  const m = String(text || '').normalize('NFC').toLowerCase().match(/[^\W\d_]+(?:[᾽'][^\W\d_]+)?/gu);
+  const m = String(text || '').normalize('NFC').toLowerCase().match(/[\p{L}]+(?:[᾽'][\p{L}]+)?/gu);
   return m ? m : [];
 }
 
