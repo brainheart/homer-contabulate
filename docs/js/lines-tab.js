@@ -142,10 +142,9 @@
             ? playsById.get(line.play_id)
             : null;
           rows.push({
-            play_title: play ? play.title : 'Unknown work',
+            play_title: play ? play.title : 'Unknown',
             play_id: line.play_id,
             act: line.act,
-            act_label: line.act_label,
             scene: line.scene,
             line_num: line.line_num,
             text: rawText,
@@ -237,6 +236,7 @@
       els.tableBody.innerHTML = '';
       for (const row of paginatedRows) {
         const tr = document.createElement('tr');
+        const actVal = row.act_label || row.act;
         const sceneVal = row.scene_label || row.scene;
 
         const tdPlay = document.createElement('td');
@@ -246,8 +246,8 @@
           tdPlay.textContent = row.play_title ?? '';
         }
 
-        const tdBook = document.createElement('td');
-        tdBook.textContent = row.act_label || row.act;
+        const tdAct = document.createElement('td');
+        tdAct.textContent = actVal;
 
         const tdScene = document.createElement('td');
         tdScene.textContent = sceneVal;
@@ -259,7 +259,7 @@
           : window.escapeHTML(row.text);
 
         tr.appendChild(tdPlay);
-        tr.appendChild(tdBook);
+        tr.appendChild(tdAct);
         tr.appendChild(tdScene);
         tr.appendChild(tdText);
         els.tableBody.appendChild(tr);
@@ -271,7 +271,7 @@
         setElementHidden(els.pagination, filtered.length <= 25);
       }
       if (els.pageInfo) els.pageInfo.textContent = `Page ${state.currentPage} of ${totalPages}`;
-      if (els.totalInfo) els.totalInfo.textContent = `(${filtered.length} total lines)`;
+      if (els.totalInfo) els.totalInfo.textContent = `(${filtered.length} total paragraphs)`;
       if (els.firstPage) els.firstPage.disabled = state.currentPage === 1;
       if (els.prevPage) els.prevPage.disabled = state.currentPage === 1;
       if (els.nextPage) els.nextPage.disabled = state.currentPage === totalPages;
@@ -286,9 +286,9 @@
       if (!els.headRow) return;
       const cols = [
         { key: 'play_title', label: 'Work', defaultDir: 'asc', type: 'text' },
-        { key: 'act_label', label: 'Book', defaultDir: 'asc', type: 'text' },
-        { key: 'scene', label: 'Line', type: 'number' },
-        { key: 'text', label: 'Line', defaultDir: 'asc', type: 'text' }
+        { key: 'act', label: 'Chapter', type: 'number' },
+        { key: 'scene', label: 'Paragraph', type: 'number' },
+        { key: 'text', label: 'Paragraph Text', defaultDir: 'asc', type: 'text' }
       ];
 
       els.headRow.innerHTML = '';
@@ -342,14 +342,14 @@
 
       const rows = buildLinesRows(query);
       if (!rows) {
-        els.tableBody.innerHTML = '<tr><td colspan="4" class="warning">Invalid search or no line data available.</td></tr>';
+        els.tableBody.innerHTML = '<tr><td colspan="4" class="warning">Invalid search or no paragraph data available.</td></tr>';
         setElementHidden(els.pagination, true);
         updateFilterActions();
         return;
       }
 
       if (rows.length === 0) {
-        els.tableBody.innerHTML = '<tr><td colspan="4" class="muted">No lines matched.</td></tr>';
+        els.tableBody.innerHTML = '<tr><td colspan="4" class="muted">No paragraphs matched.</td></tr>';
         setElementHidden(els.pagination, true);
         updateFilterActions();
         return;
@@ -417,8 +417,8 @@
       const rows = [cols.map(c => c.label)];
       for (const r of filtered) {
         rows.push(cols.map(c => {
+          if (c.key === 'act') return r.act_label || r.act;
           if (c.key === 'scene') return r.scene_label || r.scene;
-          if (c.key === 'act_label') return r.act_label || r.act;
           if (c.key === 'text') return r.text;
           return r[c.key] ?? '';
         }));
@@ -480,7 +480,7 @@
 
         if (els.downloadCsv) {
         els.downloadCsv.addEventListener('click', () => {
-          const name = `lines-${Date.now()}.csv`;
+          const name = `paragraphs-${Date.now()}.csv`;
           downloadCsvAll(name);
         });
       }
