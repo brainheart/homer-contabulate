@@ -41,7 +41,7 @@
         <select id="gran" class="control-select">
           <option value="play">Work</option>
           <option value="act" selected>Book</option>
-          <option value="line">Line Text</option>
+          <option value="line">Lines</option>
         </select>
         <span class="label-strong">matching</span>
         <select id="matchMode" class="control-select">
@@ -1343,7 +1343,7 @@
             row[`${termKeys[idx]}_count`] = c;
           }
         });
-        if (hasTerm) {
+        if (hasTerm || lineMatchers.length === 0) {
           row.line_highlight_regex = (matchedNgrams.length === 0 || matchedNgrams.length > 60)
             ? null
             : buildHighlightRegexFromNgrams(matchedNgrams);
@@ -1359,7 +1359,7 @@
       ];
       const termCols = buildTermColumns();
       baseCols.push(...termCols);
-      baseCols.push({ key: 'line', label: 'Line', type: 'text' });
+      baseCols.push({ key: 'line', label: 'Lines', type: 'text' });
       setHeaders(baseCols);
       if (!applyPreferredTermSort(termCols, preferredSortTermIndex)) {
         const defaultSortKey = termCols[0]?.key || 'location';

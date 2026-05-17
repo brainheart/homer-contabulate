@@ -105,6 +105,7 @@
       }
       const queryTokens = window.normalizeTerm(query).split(/\s+/).filter(Boolean).slice(0, n);
       const queryNgram = queryTokens.join(' ');
+      const showAllLines = !queryNgram && !isRegex;
 
       for (const line of allLines) {
         let matches = false;
@@ -127,13 +128,16 @@
             highlightRegex = matchedNgrams.length > 50 ? null : window.buildHighlightRegexFromNgrams(matchedNgrams);
           }
         } else {
-          if (!queryNgram) return null;
-          let count = 0;
-          for (const ng of ngrams) {
-            if (ng === queryNgram) count++;
+          if (showAllLines) {
+            matches = true;
+          } else {
+            let count = 0;
+            for (const ng of ngrams) {
+              if (ng === queryNgram) count++;
+            }
+            matches = count > 0;
+            if (matches) highlightRegex = window.buildHighlightRegexFromNgrams([queryNgram]);
           }
-          matches = count > 0;
-          if (matches) highlightRegex = window.buildHighlightRegexFromNgrams([queryNgram]);
         }
 
         if (matches) {
@@ -271,7 +275,7 @@
         setElementHidden(els.pagination, filtered.length <= 25);
       }
       if (els.pageInfo) els.pageInfo.textContent = `Page ${state.currentPage} of ${totalPages}`;
-      if (els.totalInfo) els.totalInfo.textContent = `(${filtered.length} total paragraphs)`;
+      if (els.totalInfo) els.totalInfo.textContent = `(${filtered.length} total lines)`;
       if (els.firstPage) els.firstPage.disabled = state.currentPage === 1;
       if (els.prevPage) els.prevPage.disabled = state.currentPage === 1;
       if (els.nextPage) els.nextPage.disabled = state.currentPage === totalPages;
@@ -286,9 +290,9 @@
       if (!els.headRow) return;
       const cols = [
         { key: 'play_title', label: 'Work', defaultDir: 'asc', type: 'text' },
-        { key: 'act', label: 'Chapter', type: 'number' },
-        { key: 'scene', label: 'Paragraph', type: 'number' },
-        { key: 'text', label: 'Paragraph Text', defaultDir: 'asc', type: 'text' }
+        { key: 'act', label: 'Book', type: 'number' },
+        { key: 'scene', label: 'Line', type: 'number' },
+        { key: 'text', label: 'Lines', defaultDir: 'asc', type: 'text' }
       ];
 
       els.headRow.innerHTML = '';
@@ -333,23 +337,17 @@
     function doSearch() {
       if (!els.query || !els.tableBody || !els.pagination) return;
       const query = els.query.value.trim();
-      if (!query) {
-        els.tableBody.innerHTML = '';
-        setElementHidden(els.pagination, true);
-        updateFilterActions();
-        return;
-      }
 
       const rows = buildLinesRows(query);
       if (!rows) {
-        els.tableBody.innerHTML = '<tr><td colspan="4" class="warning">Invalid search or no paragraph data available.</td></tr>';
+        els.tableBody.innerHTML = '<tr><td colspan="4" class="warning">Invalid search or no line data available.</td></tr>';
         setElementHidden(els.pagination, true);
         updateFilterActions();
         return;
       }
 
       if (rows.length === 0) {
-        els.tableBody.innerHTML = '<tr><td colspan="4" class="muted">No paragraphs matched.</td></tr>';
+        els.tableBody.innerHTML = '<tr><td colspan="4" class="muted">No lines matched.</td></tr>';
         setElementHidden(els.pagination, true);
         updateFilterActions();
         return;
@@ -480,7 +478,7 @@
 
         if (els.downloadCsv) {
         els.downloadCsv.addEventListener('click', () => {
-          const name = `paragraphs-${Date.now()}.csv`;
+          const name = `lines-${Date.now()}.csv`;
           downloadCsvAll(name);
         });
       }
