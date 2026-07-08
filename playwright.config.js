@@ -1,18 +1,16 @@
-// @ts-check
 const { defineConfig } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: './tests',
-  testMatch: /.*\.spec\.js/,
   timeout: 30000,
+  retries: 0,
   use: {
-    baseURL: 'http://127.0.0.1:4173',
+    baseURL: 'http://localhost:8771',
     headless: true,
   },
   webServer: {
-    command: 'python3 -m http.server 4173',
-    url: 'http://127.0.0.1:4173/docs/',
+    command: 'python3 -m http.server 8771 -d docs',
+    port: 8771,
     reuseExistingServer: true,
-    timeout: 30000,
   },
 });
