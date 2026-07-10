@@ -153,10 +153,14 @@ class TestPublishedMetadata(unittest.TestCase):
         self.assertGreater(sum(c["hapax_count"] for c in chunks), 8000)
         instance = json.loads((DATA_DIR.parent / "instance.json").read_text())
         self.assertEqual(instance["id"], "homer")
+        self.assertEqual(instance["language"], "Greek")
+        self.assertEqual(instance["created"], "2026-03-31")
         self.assertEqual(instance["stats"]["texts"], 2)
         self.assertEqual(instance["stats"]["segments"], 27794)
         self.assertEqual(instance["stats"]["words"], 199084)
         self.assertEqual(instance["stats"]["segment_label"], "lines")
+        self.assertEqual(instance["stats"]["commentaries"], 0)
+        self.assertEqual(instance["stats"]["comments"], 0)
 
     def test_characters_hold_per_book_aggregates_not_names(self):
         # characters.json here is repurposed as per-book aggregates
