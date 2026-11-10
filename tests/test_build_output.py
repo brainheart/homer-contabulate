@@ -170,5 +170,76 @@ class TestPublishedMetadata(unittest.TestCase):
         self.assertTrue(all(c["name"].startswith("Ῥαψῳδία") for c in chars))
 
 
+class TestGlossary(unittest.TestCase):
+    """The English reading aids: treebank lemmas, Logeion glosses."""
+
+    @classmethod
+    def setUpClass(cls):
+        import sys
+        sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+        import build_data
+        import glossary
+        cls.module = glossary
+        cls.tokenize = staticmethod(build_data.tokenize)
+        cls.glossary = json.loads((DATA_DIR / "glossary.json").read_text(encoding="utf-8"))
+        cls.tokens = json.loads((DATA_DIR / "tokens.json").read_text(encoding="utf-8"))
+        cls.lines = json.loads((LINES_DIR / "all_lines.json").read_text(encoding="utf-8"))
+        cls.lemmas = cls.glossary["lemmas"]
+        cls.forms = cls.glossary["forms"]
+        cls.by_lemma = {e["lemma"]: e for e in reversed(cls.lemmas)}
+
+    def test_sources_are_pinned_and_attributed(self):
+        root = Path(__file__).parent.parent / "source_text"
+        self.assertEqual(self.module.sha256(root / "treebank" / "lemmas.tsv"), self.module.EXTRACT_SHA256)
+        self.assertEqual(len(self.module.load_shortdefs(root / "lexicon" / self.module.SHORTDEFS_FILE)["ἀνήρ"]), len("a man"))
+        self.assertEqual(self.glossary["meta"], {"lang": "grc", "dir": "ltr"})
+        self.assertIn("Perseus Ancient Greek Dependency Treebank", self.glossary["source"])
+        self.assertIn("Logeion", self.glossary["source"])
+
+    def test_words_take_lemmas_from_the_treebank(self):
+        root = Path(__file__).parent.parent / "source_text"
+        shortdefs = self.module.load_shortdefs(root / "lexicon" / self.module.SHORTDEFS_FILE)
+        notes, stats = self.module.annotate(self.lines, root / "treebank", self.tokenize, shortdefs)
+        self.assertEqual(stats["words"], 199084)
+        self.assertGreater(stats["lines_identical"], 26000)
+        self.assertLess(stats["words_without_lemma"], 100)
+        self.assertEqual([n[0] for n in notes["Il.1.1"]], ["μῆνις", "ἀείδω", "θεά", "Πηληιάδης", "Ἀχιλλεύς"])
+        self.assertEqual([n[0] for n in notes["Od.1.1"]][:3], ["ἀνήρ", "ἐγώ", "ἐνέπω"])
+        for row in self.lines:
+            self.assertEqual(len(notes[row["canonical_id"]]), len(self.tokenize(row["text"])))
+
+    def test_matching_ignores_elision_marks_but_keeps_breathings(self):
+        key = self.module.match_key
+        self.assertEqual(key("δ\u0313"), "δ")            # the treebank's elision mark
+        self.assertEqual(key("μυρίʼ"), key("μυρί\u0313"))
+        self.assertEqual(key("οὐ"), "οὐ")                 # a breathing, not an elision
+        self.assertEqual(key("Μῆνιν"), "μῆνιν")
+        self.assertEqual(self.module.acute("οὐδὲ"), "οὐδέ")
+        self.assertEqual(self.module.bare("θνῄσκω"), "θνησκω")
+
+    def test_forms_cover_the_vocabulary_exactly(self):
+        self.assertEqual(set(self.forms), set(self.tokens))
+        for form, (count, glosses, related) in self.forms.items():
+            self.assertEqual(count, sum(c for _, c in self.tokens[form]), form)
+            self.assertTrue(all(0 <= i < len(self.lemmas) for i in related))
+        self.assertEqual(self.forms["μῆνιν"][1], ["wrath, anger"])
+        self.assertLess(sum(1 for entry in self.forms.values() if not entry[1]), 900)
+
+    def test_lemmas_and_glosses(self):
+        self.assertEqual(len(self.lemmas), 8816)
+        self.assertEqual([e["n"] for e in self.lemmas], sorted((e["n"] for e in self.lemmas), reverse=True))
+        for entry in self.lemmas:
+            self.assertEqual(entry["n"], sum(count for _, count in entry["forms"]))
+        self.assertEqual(dict(self.by_lemma["μῆνις"]["forms"]), {"μῆνιν": 12, "μῆνις": 3, "μήνιος": 1})
+        self.assertEqual(self.by_lemma["μῆνις"]["w"], [["wrath", 16], ["anger", 8]])
+        self.assertEqual(self.by_lemma["ναῦς"]["def"], "a ship")
+        # A compound the treebank writes as two words is one dictionary form here.
+        self.assertEqual(self.by_lemma["οὐδέ"]["n"], 658)
+        # Glosses this instance supplies for headwords the list lacks.
+        self.assertEqual(self.by_lemma["ἕ"]["def"], "him, her, it (third-person pronoun)")
+        unglossed = sum(e["n"] for e in self.lemmas if not e["def"])
+        self.assertLess(unglossed / 199084, 0.015)
+
+
 if __name__ == "__main__":
     unittest.main()

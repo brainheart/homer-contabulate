@@ -283,6 +283,18 @@ def build() -> None:
         "play_additions": {}, "play_removals": {},
     })
     write_json(LINES_DIR / "all_lines.json", all_lines)
+    # English glosses and dictionary forms for every word form (reading aids).
+    from glossary import SHORTDEFS_COMMIT, TREEBANK_COMMIT, build_glossary
+    glossary, glossary_stats = build_glossary(all_lines, ROOT / "source_text", tokenize)
+    write_json(DATA_DIR / "glossary.json", {
+        "source": "Perseus Ancient Greek Dependency Treebank 2.1 lemmas "
+                  f"(PerseusDL/treebank_data@{TREEBANK_COMMIT[:7]}, CC BY-SA 3.0) and Logeion/Perseus short "
+                  f"definitions (helmadik/shortdefs@{SHORTDEFS_COMMIT[:7]})",
+        "meta": {"lang": "grc", "dir": "ltr"},
+        **glossary,
+    })
+    print(f"Glossary: {glossary_stats['lemmas']} lemmas for {glossary_stats['forms']} forms; "
+          f"{glossary_stats['words_without_lemma']} words without a lemma.")
 
     print(
         f"Built {len(plays)} works, {len(characters)} books, {len(chunks)} lines, "

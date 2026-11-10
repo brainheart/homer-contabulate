@@ -13,6 +13,15 @@ The Greek source texts in `source_text/` come from the Perseus Digital Library T
 
 Perseus Digital Library: <https://www.perseus.tufts.edu/hopper/>
 
+## English lookup and glosses
+
+For readers without Greek, a lookup box above the term field finds Greek words by English meaning and inserts them as search terms; the word views add English and Dictionary form columns.
+
+- Dictionary forms come from the Perseus Ancient Greek Dependency Treebank 2.1 (CC BY-SA 3.0), which annotates every word of these same Perseus editions. The treebank XML is 36 MB, so the repository keeps the extract `source_text/treebank/lemmas.tsv`; `python3 scripts/fetch_treebank.py` reproduces it from the pinned commit.
+- Glosses are the Logeion/Perseus short definitions in `source_text/lexicon` (`helmadik/shortdefs`, pinned; the repository asks for credit to Perseus and Logeion and states no formal license). Sixteen frequent Homeric headwords the list lacks are glossed in `scripts/glossary.py`.
+- `scripts/glossary.py` writes `docs/data/glossary.json` during `scripts/build_data.py`. It is display-only: nothing in it is searched or counted, and the page works without it.
+- `docs/js/glossary.js` is shared verbatim with the other non-English Contabulate instances.
+
 ## Build
 
 Rebuild the static JSON data:
